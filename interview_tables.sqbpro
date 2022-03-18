@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?><sqlb_project><db path="/Users/goldenrule/Desktop/querries.db" readonly="0" foreign_keys="1" case_sensitive_like="0" temp_store="0" wal_autocheckpoint="1000" synchronous="2"/><attached/><window><main_tabs open="structure browser pragmas query" current="3"/></window><tab_structure><column_width id="0" width="300"/><column_width id="1" width="0"/><column_width id="2" width="100"/><column_width id="3" width="1527"/><column_width id="4" width="0"/><expanded_item id="0" parent="1"/><expanded_item id="1" parent="1"/><expanded_item id="2" parent="1"/><expanded_item id="3" parent="1"/></tab_structure><tab_browse><current_table name="4,5:mainBonus"/><default_encoding codec=""/><browse_table_settings><table schema="main" name="Bonus" show_row_id="0" encoding="" plot_x_axis="" unlock_view_pk="_rowid_"><sort/><column_widths><column index="1" value="102"/><column index="2" value="95"/><column index="3" value="77"/></column_widths><filter_values/><conditional_formats/><row_id_formats/><display_formats/><hidden_columns/><plot_y_axes/><global_filter/></table><table schema="main" name="DIALOGLOG" show_row_id="0" encoding="" plot_x_axis="" unlock_view_pk="_rowid_"><sort/><column_widths><column index="1" value="46"/><column index="2" value="42"/><column index="3" value="65"/><column index="4" value="74"/></column_widths><filter_values/><conditional_formats/><row_id_formats/><display_formats/><hidden_columns/><plot_y_axes/><global_filter/></table><table schema="main" name="students" show_row_id="0" encoding="" plot_x_axis="" unlock_view_pk="_rowid_"><sort/><column_widths><column index="1" value="63"/></column_widths><filter_values/><conditional_formats/><row_id_formats/><display_formats/><hidden_columns/><plot_y_axes/><global_filter/></table></browse_table_settings></tab_browse><tab_sql><sql name="facebook_interview_pract.sql">-- 26&gt; Write SQL to find out what percent of students attend school 
+-- on their birthday from attendance_events and all_students tables?
+SELECT  (count(at.student_id)*100/(select count(student_id) from attendance_events) )as percent
+FROM attendance_events at
+JOIN all_students s
+ON at.student_id = s.student_id
+where SUBSTR(at.date_event, -5, 2) = SUBSTR(s.date_of_birth, -5, 2)
+and SUBSTR(at.date_event, -2, 2) = SUBSTR(s.date_of_birth, -2, 2);
+
+-- CAST(SUBSTR('2008-05-15', -5, 2) AS int);
+SELECT DATE('now'); -- more info on datetime syntax https://www.sqlite.org/lang_datefunc.html
+
+SELECT date('now','start of month','+2 month','-1 day');
+SELECT date('now','-2 day');
+
+-- Which grade level had the largest drop in attendance between yesterday and today?
+SELECT  grade_level, attendance, date_event
+from (select s.grade_level, at.attendance, at.date_event from all_students s join attendance_events at
+ON at.student_id = s.student_id 
+where at.attendance = 'present' );
+
+
+
+SELECT date, grade, today, yesterday, today - yesterday diff
+FROM 
+    (SELECT a.date, s.grade, COUNT(a.attendance) today, 
+            LAG(COUNT(a.attendance), 1) OVER (PARTITION BY grade ORDER BY date) yesterday
+     FROM attendance a JOIN students s ON a.student_id = s.student_id     
+     WHERE a.attendance = 'present' 
+       AND a.date &gt;= DATE_SUB(DATE(NOW()), INTERVAL 1 DAY)    
+     GROUP BY a.date, s.grade) last_days 
+WHERE date = date(now()) 
+ORDER BY diff LIMIT 1;</sql><current_tab id="0"/></tab_sql></sqlb_project>
